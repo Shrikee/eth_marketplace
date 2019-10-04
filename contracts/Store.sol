@@ -12,7 +12,7 @@ Write a Store contract with following methods:
 contract Store {
     uint public productCount;
     mapping(string => Product) public products;
-    VSTToken s;
+    VSTToken Token;
     struct Product {
         string name;
         uint price;
