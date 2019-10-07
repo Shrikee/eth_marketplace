@@ -1,6 +1,14 @@
 pragma solidity ^0.5.0;
 
-import "./VSTToken.sol";
+import "../node_modules/@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "../node_modules/@openzeppelin/contracts/token/ERC20/ERC20Detailed.sol";
+
+contract VSTToken is ERC20, ERC20Detailed {
+    constructor(uint256 initialSupply, string memory _name, string memory _symbol, uint8 _decimals)
+    ERC20Detailed(_name, _symbol, _decimals) public {
+        _mint(msg.sender, initialSupply);
+    }
+}
 
 /**
 Write a Store contract with following methods:
@@ -8,11 +16,10 @@ Write a Store contract with following methods:
  Invoking of sell method will record in smart contract the price of the product at which you can buy this product.
  Invoking the buy method will remove the product from smart contract and will transfer the corresponding amount of VST tokens from buyer to seller.
  */
-
-contract Store {
-    uint public productCount;
+contract Store is VSTToken(1000 ether, "VirtStore","VST", 18) {
     mapping(string => Product) public products;
-    VSTToken Token;
+    uint index;
+    string[] public productIndex;
     struct Product {
         string name;
         uint price;
@@ -42,7 +49,8 @@ contract Store {
         // Increment product count
         // Create the product
         products[_name] = Product(_name, _price, msg.sender, false);
-        productCount++;
+        // add index to an array
+        productIndex.push(_name);
         // Trigger an event
         emit ProductCreated(_name, _price, msg.sender, false);
     }
@@ -63,11 +71,16 @@ contract Store {
         /**
         *    @dev Implement transfer of tokens to buyer
         */
-        address(_seller).transfer(msg.value);
+        transfer(_seller, msg.value);
+        // address(_seller).transfer(msg.value);
         // Trigger an event
-        productCount = productCount - 1;
         emit ProductPurchased(_product.name, _product.price, msg.sender, true);
         // Delete the product => set its values to 0
         delete products[_name];
+        // remove _name from an array
+    }
+
+    function productCount() public view returns (uint count) {
+        count = productIndex.length;
     }
 }
