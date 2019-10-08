@@ -1,14 +1,6 @@
 pragma solidity ^0.5.0;
 
-import "../node_modules/@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "../node_modules/@openzeppelin/contracts/token/ERC20/ERC20Detailed.sol";
-
-contract VSTToken is ERC20, ERC20Detailed {
-        constructor(uint256 initialSupply, string memory _name, string memory _symbol, uint8 _decimals)
-    ERC20Detailed(_name, _symbol, _decimals) public {
-        _mint(msg.sender, initialSupply);
-    }
-}
+import './VSTToken.sol';
 
 /**
 Write a Store contract with following methods:
@@ -16,9 +8,8 @@ Write a Store contract with following methods:
  Invoking of sell method will record in smart contract the price of the product at which you can buy this product.
  Invoking the buy method will remove the product from smart contract and will transfer the corresponding amount of VST tokens from buyer to seller.
  */
-contract Store is VSTToken(1000 ether, "VirtStore","VST", 18) {
+contract Store is VSTToken(1000 ether, "VirtStore","VST",18) {
     mapping(string => Product) public products;
-    uint index;
     string[] public productIndex;
     struct Product {
         string name;
@@ -60,24 +51,12 @@ contract Store is VSTToken(1000 ether, "VirtStore","VST", 18) {
         Product memory _product = products[_name];
         // Fetch the owner
         address payable _seller = _product.owner;
-        /**
-        *   @dev Implement balance check for buyer tokens ammount
-        */
-        VSTToken Token;
-        uint buyerBalance = Token.balanceOf(msg.sender);
-        require(buyerBalance >= _product.price, "Note enough funds");
-        // Require that there is enough Ether in the transaction
-        /** Eth implementation
-        *  require(msg.value >= _product.price, "Not enough funds");
-        */
         // Require that the buyer is not the seller
         require(_seller != msg.sender, "Cant buy your own product");
-        // Pay the seller by sending them Ether
-        /**
-        *    @dev Implement transfer of tokens to buyer
-        */
-        transfer(_seller, msg.value);
-        // address(_seller).transfer(msg.value);
+        address payable _buyer = msg.sender;
+        uint balance = balanceOf(_buyer);
+        require(balance >= _product.price, "Not enough funds");
+        transfer(_seller, _product.price);
         // Trigger an event
         emit ProductPurchased(_product.name, _product.price, msg.sender, true);
         // Delete the product => set its values to 0
