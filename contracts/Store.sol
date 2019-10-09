@@ -8,7 +8,11 @@ Write a Store contract with following methods:
  Invoking of sell method will record in smart contract the price of the product at which you can buy this product.
  Invoking the buy method will remove the product from smart contract and will transfer the corresponding amount of VST tokens from buyer to seller.
  */
-contract Store is VSTToken(1000 ether, "VirtStore","VST",18) {
+contract Store {
+    VSTToken internal Token;
+    constructor(address tokenAddress) public {
+        Token = VSTToken(tokenAddress);
+    }
     mapping(string => Product) public products;
     string[] public productIndex;
     struct Product {
@@ -32,6 +36,15 @@ contract Store is VSTToken(1000 ether, "VirtStore","VST",18) {
         bool purchased
     );
 
+    function checkBalance(address _address) public view returns (uint _balance) {
+        return Token.balanceOf(_address);
+    }
+    // allowance from token holder should be set to be able to transfer tokens
+    function transferFunds(address _buyer, address _seller, uint256 _price) public  returns (bool) {
+        Token.transferFrom(_buyer, _seller, _price);
+        return true;
+    }
+
     function sellProduct(string memory _name, uint _price) public {
         // Require a valid name
         require(bytes(_name).length > 0, "Invalid name");
@@ -53,10 +66,11 @@ contract Store is VSTToken(1000 ether, "VirtStore","VST",18) {
         address payable _seller = _product.owner;
         // Require that the buyer is not the seller
         require(_seller != msg.sender, "Cant buy your own product");
-        address payable _buyer = msg.sender;
-        uint balance = balanceOf(_buyer);
-        require(balance >= _product.price, "Not enough funds");
-        transfer(_seller, _product.price);
+        // Check buyer token balance
+        uint buyerBalance = checkBalance(msg.sender);
+        require(buyerBalance >= _product.price, "Not enough funds");
+        // Transfer tokens from buyer to seller
+        transferFunds(msg.sender, _seller, _product.price);
         // Trigger an event
         emit ProductPurchased(_product.name, _product.price, msg.sender, true);
         // Delete the product => set its values to 0

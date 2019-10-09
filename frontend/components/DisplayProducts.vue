@@ -89,7 +89,10 @@ export default {
               .products(res)
               .call()
               .then(res => {
-                this.prodList.push(res)
+                if (res) {
+                  this.prodList.push(res)
+                  console.log('array: ' + JSON.stringify(this.prodList[i]))
+                }
                 console.log(res)
               })
           })
