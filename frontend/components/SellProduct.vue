@@ -25,13 +25,11 @@ export default {
       console.log(accounts)
       const contract = new web3.eth.Contract(
         storeContract.abi,
-        process.env.CONTRACT_ADDRESS
+        process.env.STORE_CONTRACT_ADDRESS
       )
-      await contract.methods
-        .sellProduct(this.name, this.price)
-        .send({
-          from: accounts[0]
-        })
+      await contract.methods.sellProduct(this.name, this.price).send({
+        from: accounts[0]
+      })
     },
     getPermission() {
       window.addEventListener('load', async () => {

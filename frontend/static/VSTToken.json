@@ -1132,8 +1132,8 @@
         }
       },
       "links": {},
-      "address": "0x0e35dEAe5733265614136dE96f6b3F4eC38317c9",
-      "transactionHash": "0x51954537b5314cbd242aefc85cd7eeffe81a42fe556f09f5051821b4b70630cf"
+      "address": "0x91cf9F21Fbb235C5BDB12D51eebFc37785B119Df",
+      "transactionHash": "0x1e7573ac3a31fa2e9ea80e8c58a4d3083782e4518457c520b863b91b558217c2"
     },
     "5777": {
       "events": {
@@ -1185,12 +1185,12 @@
         }
       },
       "links": {},
-      "address": "0x6F1E913d48F866BC6f802423eFCeB69Ead1D8221",
-      "transactionHash": "0x910720c9c04c5ddbb7461a8143dbd993a261bc1911a2e842d54ff4cff05b0406"
+      "address": "0x1fb1c3097d73002950F599430e72863C774d6aca",
+      "transactionHash": "0xaa2e68fd9dac87877d75ba8e77a4ab219d62db3634ba6be8ce9042f0d0681cb8"
     }
   },
   "schemaVersion": "3.0.16",
-  "updatedAt": "2019-10-10T14:32:49.874Z",
+  "updatedAt": "2019-10-10T12:42:15.611Z",
   "devdoc": {
     "methods": {
       "allowance(address,address)": {

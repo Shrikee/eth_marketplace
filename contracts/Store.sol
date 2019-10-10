@@ -12,14 +12,26 @@ contract Store {
     VSTToken internal Token;
     constructor(address tokenAddress) public {
         Token = VSTToken(tokenAddress);
+        contractAddress = address(this);
     }
+    address public contractAddress;
     mapping(string => Product) public products;
+    mapping(address => Deal ) public deals;
     string[] public productIndex;
+
     struct Product {
         string name;
         uint price;
         address payable owner;
         bool purchased;
+    }
+
+    struct Deal {
+        string name;
+        uint price;
+        address payable seller;
+        address payable buyer;
+        bool isDone;
     }
 
     event ProductCreated(
@@ -36,13 +48,15 @@ contract Store {
         bool purchased
     );
 
+    event DealCreated(
+        string name,
+        uint price,
+        address seller,
+        address buyer
+    );
+
     function checkBalance(address _address) public view returns (uint _balance) {
         return Token.balanceOf(_address);
-    }
-    // allowance from token holder should be set to be able to transfer tokens
-    function transferFunds(address _buyer, address _seller, uint256 _price) public  returns (bool) {
-        Token.transferFrom(_buyer, _seller, _price);
-        return true;
     }
 
     function sellProduct(string memory _name, uint _price) public {
@@ -59,26 +73,34 @@ contract Store {
         emit ProductCreated(_name, _price, msg.sender, false);
     }
 
-    function purchaseProduct(string memory _name) public payable {
+    function purchaseProduct(string memory _name) public payable returns (bool) {
         // Fetch the product
         Product memory _product = products[_name];
         // Fetch the owner
         address payable _seller = _product.owner;
+        address payable _buyer = msg.sender;
         // Require that the buyer is not the seller
-        require(_seller != msg.sender, "Cant buy your own product");
+        require(_seller != _buyer, "Cant buy your own product");
         // Check buyer token balance
-        uint buyerBalance = checkBalance(msg.sender);
+        uint buyerBalance = checkBalance(_buyer);
         require(buyerBalance >= _product.price, "Not enough funds");
-        // Transfer tokens from buyer to seller
-        transferFunds(msg.sender, _seller, _product.price);
         // Trigger an event
-        emit ProductPurchased(_product.name, _product.price, msg.sender, true);
+        emit ProductPurchased(_product.name, _product.price, _buyer, true);
         // Delete the product => set its values to 0
         delete products[_name];
         // remove _name from an array
+        // @dev delete productIndex[uint key]
+        // add product to deals mapping
+        deals[_seller] = Deal(_name, _product.price, _seller, _buyer, false);
+        emit DealCreated(_name, _product.price, _seller, _buyer);
+        return true;
     }
 
     function productCount() public view returns (uint count) {
         count = productIndex.length;
+    }
+
+    function clearDeal(address _seller) public {
+        return delete deals[_seller];
     }
 }
