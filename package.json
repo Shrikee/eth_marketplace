@@ -13,7 +13,9 @@
     "truffle": "^5.0.39",
     "truffle-hdwallet-provider": "^1.0.17"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "bn.js": "^5.0.0"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
