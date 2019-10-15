@@ -4,8 +4,8 @@
     <v-card v-if="deal.name">
       <v-card-text>
         <h2>{{ deal.name }}</h2>
-        <h3>Buyer: {{ deal.buyer}}</h3>
-        <h3>Price: {{ deal.price}}</h3>
+        <h3>Buyer: {{ deal.buyer }}</h3>
+        <h3>Price: {{ deal.price }}</h3>
       </v-card-text>
       <v-card-actions>
         <v-btn

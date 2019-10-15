@@ -25,14 +25,14 @@ contract('VSTToken test', async accounts => {
         let result = await instance.totalSupply.call();
         assert.equal(initialSupply, result, 'totalSupply not correct')
     })
-    it('should transfer tokens to contract creator', async () => {        
+    it('should transfer tokens to contract creator', async () => {
         let balance = await instance.balanceOf.call(accounts[0]);
         assert.equal(balance, 1000000);
     });
     it('can transfer', async () => {
         let ammount = 50
-        let balanceReciever = await instance.balanceOf(accounts[1])         
-        await instance.transfer(accounts[1], ammount); 
+        let balanceReciever = await instance.balanceOf(accounts[1])
+        await instance.transfer(accounts[1], ammount);
         balanceReciever = await instance.balanceOf.call(accounts[1])
         assert.equal(balanceReciever, ammount, 'Ammount not transfered')
     })
