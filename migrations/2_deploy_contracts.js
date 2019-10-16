@@ -7,7 +7,7 @@ module.exports = async (deployer, network, accounts) => {
     const _symbol = "VST";
     const _decimals = 2; // 1 wei = 0.01 VST
     // const initialSupply = 1000 ** _decimals; removed instant minting 
-    const _rate = 1000000000000000; // 1 VST =  0.001 ETH
+    const _rate = 10000000000000; // 1 VST =  0.001 ETH
     const _wallet = accounts[0];
     // deploy token
     await deployer.deploy(VSTToken, _name, _symbol, _decimals);

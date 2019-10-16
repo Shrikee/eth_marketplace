@@ -8,4 +8,9 @@ contract VSTCrowdsale is Crowdsale, MintedCrowdsale {
         Crowdsale(_rate, _wallet, _token) public {
 
         }
+
+        /* When the user i (Crowdsale will increment this value each time when someone buy VST)
+        will buy n VST tokens, the Crowdsale contract will sell the product Stock + i with the price n VST
+        (e.g.: Stock23 will cost 20 VST)
+        **/
 }
