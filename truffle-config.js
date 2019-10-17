@@ -19,7 +19,7 @@
  */
 require('dotenv').config();
 const HDWalletProvider = require('truffle-hdwallet-provider');
-const infuraKey = "baa988c41c474e3987427d1e0d6e3041";
+const infuraKey = process.env.INFURA
 const mnemonic = process.env.MNEMONIC
 
 module.exports = {
@@ -45,7 +45,8 @@ module.exports = {
     development: {
       host: "127.0.0.1",     // Localhost (default: none)
       port: 7545,            // Standard Ethereum port (default: none)
-      network_id: "*",       // Any network (default: none)
+      network_id: "*",
+      gas: 5000000
     },
 
     // Another network with more advanced options...
