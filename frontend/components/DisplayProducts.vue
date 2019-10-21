@@ -92,6 +92,7 @@ export default {
           console.log('store buy resp: ' + res)
           if (res) {
             await token.methods
+              // approve transferFrom method => this allows seller to transfer tokens to his address
               .approve(_seller, _price)
               .send({ from: accounts[0] })
               .then(res => console.log(res))

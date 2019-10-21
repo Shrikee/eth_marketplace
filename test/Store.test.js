@@ -35,6 +35,8 @@ contract('Store', async accounts => {
     // need to resolve the account balance issue
     it('can sell product', async () => {
         await token.transfer(accounts[1], prodPrice);
+        let userBalance = await instance.checkBalance(accounts[1]);
+        console.log('Account[1] balance: ' + userBalance);
         let result = await instance.purchaseProduct(prodName, { from: accounts[1] });
         let product = await instance.products(prodName);
         assert.equal(product.name, '', 'Not purchased');
@@ -48,4 +50,4 @@ contract('Store', async accounts => {
         let deal = await instance.deals(accounts[0]);
         assert.equal(deal.name, '', 'deal not cleared');
     });
-}); 
+});

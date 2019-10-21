@@ -39,7 +39,7 @@ contract VSTCrowdsale is Crowdsale, MintedCrowdsale {
         sellProductOnTokenPurchase(concString, tokensPurchased);
     }
     // concatinate 2 strings
-    function appendValues(string memory _str1, string memory _str2) internal returns (string memory) {
+    function appendValues(string memory _str1, string memory _str2) internal pure returns (string memory) {
         return string(abi.encodePacked(_str1, _str2));
     }
 
