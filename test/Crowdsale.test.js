@@ -23,11 +23,11 @@ contract('Crowdsale', async accounts => {
         await token.mint(crowdsale.address, 1);
         let balance = await token.balanceOf(crowdsale.address);
         balance = balance.toString();
-        assert.equal(balance, '1', 'Tokens are not minted')
-    })
+        assert.equal(balance, '1', 'Tokens are not minted');
+    });
     it('can display the wallet address', async () => {
         assert.equal(wallet, accounts[0], 'Wallet is not correct');
-    })
+    });
     it('can accept funds', async () => {
         let finney = web3.utils.toWei('1', 'finney');
         let walletBalanceBefore = await web3.eth.getBalance(wallet);
