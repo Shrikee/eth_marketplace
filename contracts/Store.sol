@@ -171,7 +171,7 @@ contract ProductAutcion {
     address public beneficiary;
     address store;
     // bidders funds
-    mapping(address => uint) pendingReturns;
+    mapping(address => uint) public pendingReturns;
 
     constructor(
         uint _startBlock,
@@ -198,46 +198,44 @@ contract ProductAutcion {
         owner = _owner;
     }
         // store users bids
-    function placeBid(uint tokenAmmount) public onlyBeforeEnd {
+    function placeBid(uint tokenAmount) public onlyBeforeEnd {
         // check balance
         require(Token.balanceOf(msg.sender) >= price, 'Not enough funds');
         // check highest bid, if less => revert
-        require(tokenAmmount > highestBid, 'Bid is less then highest bid');
-        Token.transfer(productAuction, tokenAmmount);
-        highestBid = tokenAmmount;
-        highestBidder = msg.sender;
-        // add to bidders pool
-        if (pendingReturns[msg.sender] > 0) {
-            uint pastBid = pendingReturns[msg.sender];
-            uint newBid = pastBid.add(tokenAmmount);
-            pendingReturns[msg.sender] = newBid;
-        }
-        else {
-            pendingReturns[msg.sender] = tokenAmmount;
-        }
-    }
+        require(tokenAmount > highestBid, 'Bid is less then highest bid');
+        // bid should be > then price
+        require(tokenAmount > price, "Bid should be bigger then initial price");
+        // seller can't bid
+        require(msg.sender != beneficiary, 'Cant bid on own product');
 
+        Token.approve(productAuction, tokenAmount);
+        Token.transferFrom(msg.sender, productAuction, tokenAmount);
+        highestBid = tokenAmount;
+        highestBidder = msg.sender;
+        pendingReturns[msg.sender] += tokenAmount;
+
+    }
         // withdraw funds if not the winner
     function claimTokens() public onlyAfterAuction {
-        require(msg.sender != highestBidder, "Can't withdraw");
+        require(msg.sender != highestBidder, "Winner can't claim this way");
         uint balance = pendingReturns[msg.sender];
         require(balance > 0, "Nothing to transfer");
+        pendingReturns[msg.sender] = 0;
         Token.approve(msg.sender, balance);
         Token.transferFrom(productAuction, msg.sender, balance);
     }
 
     function beneficiaryWithdraw() public onlyAfterAuction {
         require(msg.sender == beneficiary, "Only seller can claim tokens");
-        Token.approve(beneficiary, highestBid);
         // calc 5% commission
-        uint commission = highestBid.mul(105);
+        uint commission = highestBid.mul(5);
         commission = commission.div(100);
-        commission = commission.sub(highestBid);
         // send to seller
-        Token.transferFrom(productAuction, beneficiary, highestBid.sub(commission));
+        Token.approve(msg.sender, highestBid.sub(commission));
+        Token.transferFrom(productAuction, msg.sender, highestBid.sub(commission));
         // send 5% to store
-        Token.approve(owner, commission);
-        Token.transferFrom(productAuction, owner, commission);
+        // Token.approve(owner, commission);
+        // Token.transferFrom(productAuction, owner, commission);
     }
 
     modifier onlyBeforeEnd {

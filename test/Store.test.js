@@ -1,6 +1,7 @@
 const Store = artifacts.require('Store');
 const VSTToken = artifacts.require('VSTToken');
 const Auction = artifacts.require('ProductAutcion');
+const { time } = require('@openzeppelin/test-helpers');
 
 contract('Store', async accounts => {
     let store;
@@ -10,13 +11,15 @@ contract('Store', async accounts => {
     const prodPrice = 10;
     // auction related
     const auctionProduct = 'auctProd';
-    const auctionDuration = 30;
+    const auctionDuration = 5;
     const auctPrice = 1000;
 
     before(async () => {
         store = await Store.deployed();
         token = await VSTToken.deployed();
         await token.addMinter(store.address);
+        await token.mint(accounts[1], 100000);
+        await token.mint(accounts[2], 100000);
     });
 
     it('could be sold', async () => {
@@ -37,7 +40,7 @@ contract('Store', async accounts => {
     });
 
     it('can check user token balance', async () => {
-        let userBalance = await store.checkBalance(accounts[1]);
+        let userBalance = await store.checkBalance(accounts[3]);
         assert.equal(userBalance, 0, 'balance is not zero');
     });
     // need to resolve the account balance issue
@@ -85,7 +88,7 @@ contract('Store', async accounts => {
     });
     it('shows the seller', async () => {
         let beneficiary = await auction.beneficiary();
-        console.log(beneficiary);
+        assert.equal(accounts[0], beneficiary, 'Beneficiary is not equal to deployer of auct contract');
     });
     it('shows the name', async () => {
         let auctionName = await auction.name();
@@ -97,20 +100,63 @@ contract('Store', async accounts => {
     });
 
     it('can accept bids', async () => {
-        await token.mint(accounts[0], 100000);
-        await token.mint(store.address, 100000)
-
-        // token.transfer(auction.address, 1000);
-        let bid = 1000
-        // console.log(typeof (bid))
-        let transaction = await auction.placeBid(bid);
+        let bid = 2000;
+        await token.approve(auction.address, bid, { from: accounts[1] })
+        await auction.placeBid(bid, { from: accounts[1] });
         let auctionBalance = await token.balanceOf(auction.address);
-        console.log('Auction balance: ' + auctionBalance.toString());
-        let tokenBalance = await token.balanceOf(accounts[0]);
-        console.log('Account[0] balance: ' + tokenBalance.toString());
-        //     let res = await auction.placeBid(bid);
-        //     console.log('Res: ' + res);
-        //     let highestBid = await auction.highestBid();
-        //     console.log('Highest bid: ' + highestBid);
+        assert.equal(auctionBalance, bid, 'Auction balance is not equal to placed bid');
+        let highestBid = await auction.highestBid();
+        console.log('Highest bid: ' + highestBid);
+        assert.equal(highestBid, bid, 'Highest bid should be the bid');
+        let highestBidder = await auction.highestBidder();
+        assert.equal(highestBidder, accounts[1], 'Highest bidder is not equal to last bidder');
     });
-})
+
+    it('stores bidders', async () => {
+        await token.approve(auction.address, 3000, { from: accounts[2] })
+        await auction.placeBid(3000, { from: accounts[2] });
+        let pendingReturns = await auction.pendingReturns(accounts[1]);
+        assert.equal(pendingReturns, 2000, 'last bid wasnt stored');
+        pendingReturns = await auction.pendingReturns(accounts[2]);
+        assert.equal(pendingReturns, 3000, 'bid wasnt stored');
+    });
+
+    it('stores correct bid amount if bidded few times', async () => {
+        let bid = 4000;
+        await token.approve(auction.address, bid, { from: accounts[1] })
+        await auction.placeBid(bid, { from: accounts[1] });
+        let pendingReturns = await auction.pendingReturns(accounts[1]);
+        console.log('balance of acc[1]: ' + pendingReturns);
+        assert.equal(pendingReturns, 6000, 'placeBid didnt increase a bi dammount if biddet twice');
+    });
+
+    it('gives the possibility to claim tokens after the auction', async () => {
+        // calculate number of blocks needed to access after auction
+        let nBlocks = Math.ceil((5 * 60) / 14);
+        // create dummy blocks
+        for (let index = 0; index <= nBlocks; index++) {
+            await time.advanceBlock();
+        }
+        // claim tokens of bidder[2]
+        let auctBalanceTok = await token.balanceOf(auction.address);
+        console.log('balance before claim: ' + auctBalanceTok);
+        await auction.claimTokens({ from: accounts[2] });
+        let balance = await token.balanceOf(accounts[2]);
+        let auctBalance = await auction.pendingReturns(accounts[2]);
+        auctBalanceTok = await token.balanceOf(auction.address);
+        console.log('balance after claim: ' + auctBalanceTok);
+        assert.equal(auctBalance, 0, 'Auction didnt registered the token claim');
+        assert.equal(balance, 100000, 'Tokens are not claimed');
+    });
+    it('seller can withdraw', async () => {
+        let bid = await auction.highestBid();
+        console.log('Highest bid: ' + bid.toString());
+        let auctBalance = await token.balanceOf(auction.address);
+        console.log('Auct balance before: ' + auctBalance);
+        let transaction = await auction.beneficiaryWithdraw({ from: accounts[0] });
+        auctBalance = await token.balanceOf(auction.address);
+        console.log('Auct balance after: ' + auctBalance);
+
+        // console.log(JSON.stringify(transaction));
+    });
+});
