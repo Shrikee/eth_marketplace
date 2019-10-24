@@ -215,14 +215,18 @@ contract ProductAutcion {
         pendingReturns[msg.sender] += tokenAmount;
 
     }
-        // withdraw funds if not the winner
+        // withdraw funds
     function claimTokens() public onlyAfterAuction {
-        require(msg.sender != highestBidder, "Winner can't claim this way");
         uint balance = pendingReturns[msg.sender];
         require(balance > 0, "Nothing to transfer");
         pendingReturns[msg.sender] = 0;
-        Token.approve(msg.sender, balance);
-        Token.transferFrom(productAuction, msg.sender, balance);
+        if (msg.sender == highestBidder) {
+            Token.transfer(msg.sender, balance.sub(highestBid));
+        }
+        else {
+            Token.approve(msg.sender, balance);
+            Token.transferFrom(productAuction, msg.sender, balance);
+        }
     }
 
     function beneficiaryWithdraw() public onlyAfterAuction {
@@ -231,11 +235,9 @@ contract ProductAutcion {
         uint commission = highestBid.mul(5);
         commission = commission.div(100);
         // send to seller
-        Token.approve(msg.sender, highestBid.sub(commission));
-        Token.transferFrom(productAuction, msg.sender, highestBid.sub(commission));
+        Token.transfer(msg.sender, highestBid.sub(commission));
         // send 5% to store
-        // Token.approve(owner, commission);
-        // Token.transferFrom(productAuction, owner, commission);
+        Token.transfer(owner, commission);
     }
 
     modifier onlyBeforeEnd {
