@@ -16,6 +16,7 @@ contract VSTCrowdsale is Crowdsale, MintedCrowdsale {
 
     constructor (uint256 _rate, address payable _wallet, IERC20 _token, address payable storeAddress)
     Crowdsale(_rate, _wallet, _token)
+
     public {
         StoreContract = Store(storeAddress);
     }

@@ -18,8 +18,8 @@ contract('Store', async accounts => {
         store = await Store.deployed();
         token = await VSTToken.deployed();
         await token.addMinter(store.address);
-        await token.mint(accounts[1], 100000);
-        await token.mint(accounts[2], 100000);
+        await token.mint(accounts[1], 1000);
+        await token.mint(accounts[2], 1000);
     });
 
     it('could be sold', async () => {
@@ -112,7 +112,7 @@ contract('Store', async accounts => {
 
     it('stores bidders', async () => {
         let bid1 = 200;
-        let bid2 = 300;
+        let bid2 = 350;
         await token.approve(auction.address, bid2, { from: accounts[2] })
         await auction.placeBid(bid2, { from: accounts[2] });
         let pendingReturns = await auction.pendingReturns(accounts[1]);
@@ -147,7 +147,7 @@ contract('Store', async accounts => {
         let auctBalance = await auction.pendingReturns(accounts[2]);
         auctBalanceTok = await token.balanceOf(auction.address);
         assert.equal(auctBalance, 0, 'Auction didnt registered the token claim');
-        assert.equal(balance, 100000, 'Tokens are not claimed');
+        assert.equal(balance, 1000, 'Tokens are not claimed');
     });
     it('seller can withdraw', async () => {
         let bid = await auction.highestBid();

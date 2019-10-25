@@ -1081,12 +1081,12 @@
         }
       },
       "links": {},
-      "address": "0xb5B6310479F28aFBEf4dDCD2f23811D84364EdB4",
-      "transactionHash": "0xc721795c665e578cbb87a6651893dc8f0e80aa4145e62b6d856a74eec98c866f"
+      "address": "0xF267dB6d249d706313DAB905DE526c6DfD0Ae65D",
+      "transactionHash": "0xe5ea79d88d8b365067fb72a8656077c077f3e4d576d35469714291a11cbdbdad"
     }
   },
   "schemaVersion": "3.0.16",
-  "updatedAt": "2019-10-24T12:00:25.109Z",
+  "updatedAt": "2019-10-25T12:24:51.243Z",
   "devdoc": {
     "methods": {
       "allowance(address,address)": {

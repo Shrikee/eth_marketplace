@@ -72,6 +72,16 @@ export default {
           icon: 'mdi-desktop-classic',
           title: 'Deals',
           to: '/deals'
+        },
+        {
+          icon: 'mdi-margin',
+          title: 'Auctions',
+          to: '/auctions'
+        },
+        {
+          icon: 'mdi-margin',
+          title: 'Tokens',
+          to: '/tokens'
         }
       ],
       miniVariant: false,

@@ -208,7 +208,6 @@ contract ProductAutcion {
         // seller can't bid
         require(msg.sender != beneficiary, 'Cant bid on own product');
 
-        Token.approve(productAuction, tokenAmount);
         Token.transferFrom(msg.sender, productAuction, tokenAmount);
         highestBid = tokenAmount;
         highestBidder = msg.sender;
@@ -221,11 +220,13 @@ contract ProductAutcion {
         require(balance > 0, "Nothing to transfer");
         pendingReturns[msg.sender] = 0;
         if (msg.sender == highestBidder) {
-            Token.transfer(msg.sender, balance.sub(highestBid));
+            if(balance.sub(highestBid) > 0) {
+                Token.transfer(msg.sender, balance.sub(highestBid));
+            }
+
         }
         else {
-            Token.approve(msg.sender, balance);
-            Token.transferFrom(productAuction, msg.sender, balance);
+            Token.transfer(msg.sender, balance);
         }
     }
 
