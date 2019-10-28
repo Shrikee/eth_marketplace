@@ -5,8 +5,10 @@ import '@openzeppelin/contracts/math/SafeMath.sol';
 
 contract Store {
     using SafeMath for uint;
+    // No need to store both tokenAddress and Token in Store contract
     VSTToken Token;
     constructor(address _tokenAddress) public {
+        require(_tokenAddress != address(0x0), "zero address");
         tokenAddress = _tokenAddress;
         Token = VSTToken(tokenAddress);
         contractAddress = address(this);
@@ -23,14 +25,14 @@ contract Store {
 
     struct Product {
         string name;
-        uint price;
+        uint256 price;
         address payable owner;
         bool purchased;
     }
 
     struct Deal {
         string name;
-        uint price;
+        uint256 price;
         address payable seller;
         address payable buyer;
         bool isDone;
@@ -38,21 +40,21 @@ contract Store {
 
     event ProductCreated(
         string name,
-        uint price,
+        uint256 price,
         address payable owner,
         bool purchased
     );
 
     event ProductPurchased(
         string name,
-        uint price,
+        uint256 price,
         address payable owner,
         bool purchased
     );
 
     event DealCreated(
         string name,
-        uint price,
+        uint256 price,
         address seller,
         address buyer
     );
@@ -61,11 +63,15 @@ contract Store {
     function () external payable {
     }
 
-    function checkBalance(address _address) public view returns (uint _balance) {
+    function checkBalance(address _address) public view returns (uint256 _balance) {
         return Token.balanceOf(_address);
     }
-// regular sale for pt1 and pt2
-    function sellProduct(string memory _name, uint _price) public {
+    //Takes name and price as arguments
+    //will throw if: name or price is not passed
+    //Adds product to products mapping, key is the product name
+    //Stores name in keys array
+    //Triggers ProductCreated event
+    function sellProduct(string memory  _name, uint256 _price) public {
         // Require a valid name
         require(bytes(_name).length > 0, "Invalid name");
         // Require a valid price
@@ -82,8 +88,8 @@ contract Store {
 // overloaded sale method for auction feature
     function sellProduct (
         string memory _name,
-        uint _price,
-        uint _time
+        uint256 _price,
+        uint256 _time
     )
         public
         returns (bool)
@@ -91,18 +97,21 @@ contract Store {
         require(bytes(_name).length > 0, "Invalid name");
         require(_price > 0, "Invalid price");
 
-        uint startBlock = block.number;
-        uint auctionDuration = _time;
+        uint256 startBlock = block.number;
+        uint256 auctionDuration = _time;
         // @TODO check gas limit when doing complex calc
         // to seconds
         auctionDuration = auctionDuration.mul(60);
         // avg block time is 14 seconds
         // number of block will be created during _time
-        uint auctDurationInBlocks = auctionDuration.div(14);
-        uint endBlock = startBlock.add(auctDurationInBlocks);
+        uint256 auctDurationInBlocks = auctionDuration.div(14);
+        uint256 endBlock = startBlock.add(auctDurationInBlocks);
         // factory function that creates auction for the product
         auctionFactory(startBlock, endBlock, _name, _price, msg.sender, contractAddress, tokenAddress);
     }
+    //Takes product name arg
+    //Will throw if sellerr buys his own product
+    //Emits Deal event that indicates that sender wants to buy
     function purchaseProduct(string memory _name) public payable returns (bool) {
         // Fetch the product
         Product memory _product = products[_name];
@@ -112,7 +121,7 @@ contract Store {
         // Require that the buyer is not the seller
         require(_seller != _buyer, "Cant buy your own product");
         // Check buyer token balance
-        uint buyerBalance = checkBalance(_buyer);
+        uint256 buyerBalance = checkBalance(_buyer);
         require(buyerBalance >= _product.price, "Not enough funds");
         // Trigger an event
         emit ProductPurchased(_product.name, _product.price, _buyer, true);
@@ -132,23 +141,26 @@ contract Store {
     function auctionCount() public view returns (uint count) {
         count = auctions.length;
     }
-
-    function clearDeal(address _seller) public {
-        return delete deals[_seller];
+// When seller confirms he sold a product this method called with msg.sender arg
+// Will throw if callee is not a seller
+    function clearDeal(address payable _seller) public {
+        address payable seller = deals[_seller].seller;
+        require(_seller == seller, "Sender is not a seller");
+        delete deals[_seller];
     }
 
     function auctionFactory(
-        uint _startBlock,
-        uint _endBlock,
+        uint256 _startBlock,
+        uint256 _endBlock,
         string memory _name,
-        uint _price,
+        uint256 _price,
         address _beneficiary,
         address _owner,
         address _token
     )
         internal
     {
-        // need to create contract with these parameters
+        // creates auction contract and adds its address to an array
         address NewAuction = address(new ProductAutcion(_startBlock, _endBlock, _name, _price, _beneficiary, _owner, _token));
         auctionsMapping[_name] = NewAuction;
         auctions.push(NewAuction);
@@ -156,28 +168,28 @@ contract Store {
 }
 
 contract ProductAutcion {
-    using SafeMath for uint;
+    using SafeMath for uint256;
 
     VSTToken Token;
     address public productAuction;
     // Auction state
-    uint public startBlock;
-    uint public endBlock;
-    string public name;
-    uint public price;
+    uint256 public startBlock;
+    uint256 public endBlock;
+    string  public name;
+    uint256 public price;
     address public highestBidder;
-    uint public highestBid;
+    uint256 public highestBid;
     address owner;
     address public beneficiary;
     address store;
     // bidders funds
-    mapping(address => uint) public pendingReturns;
+    mapping(address => uint256) public pendingReturns;
 
     constructor(
-        uint _startBlock,
-        uint _endBlock,
+        uint256 _startBlock,
+        uint256 _endBlock,
         string memory _name,
-        uint _price,
+        uint256 _price,
         address _beneficiary,
         address _owner,
         address _token
@@ -197,8 +209,13 @@ contract ProductAutcion {
         beneficiary = _beneficiary;
         owner = _owner;
     }
-        // store users bids
-    function placeBid(uint tokenAmount) public onlyBeforeEnd {
+    // user can Bid on auction
+    // takes tokens amount as a bid
+    // will throw if sender is auction owner, has not enough balance,
+    // bid is less then highest bid, bid is less then start bid
+    // stores bid by address value inside a mapping
+    // can be invoked only when auction is active
+    function placeBid(uint256 tokenAmount) public onlyBeforeEnd {
         // check balance
         require(Token.balanceOf(msg.sender) >= price, 'Not enough funds');
         // check highest bid, if less => revert
@@ -214,9 +231,12 @@ contract ProductAutcion {
         pendingReturns[msg.sender] += tokenAmount;
 
     }
-        // withdraw funds
+    //Allows bidders to withdraw their bids
+    //throw if address balance is 0
+    //can be invoked only when auction is finished
+    //Highest bidder can withdraw previous bids (excluding winner bid)
     function claimTokens() public onlyAfterAuction {
-        uint balance = pendingReturns[msg.sender];
+        uint256 balance = pendingReturns[msg.sender];
         require(balance > 0, "Nothing to transfer");
         pendingReturns[msg.sender] = 0;
         if (msg.sender == highestBidder) {
@@ -229,11 +249,14 @@ contract ProductAutcion {
             Token.transfer(msg.sender, balance);
         }
     }
-
+    //Seller withdraw
+    //will throw if not the seller
+    //Can be invoked only after auction
+    //5% commission will be transfered to Store contract
     function beneficiaryWithdraw() public onlyAfterAuction {
         require(msg.sender == beneficiary, "Only seller can claim tokens");
         // calc 5% commission
-        uint commission = highestBid.mul(5);
+        uint256 commission = highestBid.mul(5);
         commission = commission.div(100);
         // send to seller
         Token.transfer(msg.sender, highestBid.sub(commission));

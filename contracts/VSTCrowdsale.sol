@@ -5,31 +5,26 @@ import "@openzeppelin/contracts/crowdsale/emission/MintedCrowdsale.sol";
 import "./Store.sol";
 
 contract VSTCrowdsale is Crowdsale, MintedCrowdsale {
-        Store internal StoreContract;
-          // User transactions counter
-        uint256 public userCounter;
-
-        // Token ammount purchased
-        uint256 public tokensPurchased;
-
-        string public concString;
+    Store internal StoreContract;
+    // User transactions counter
+    uint256 public userCounter;
+    // Token ammount purchased
+    uint256 public tokensPurchased;
+    string public concString;
 
     constructor (uint256 _rate, address payable _wallet, IERC20 _token, address payable storeAddress)
     Crowdsale(_rate, _wallet, _token)
-
     public {
         StoreContract = Store(storeAddress);
     }
-        /* When the user i (Crowdsale will increment this value each time when someone buy VST)
-        will buy n VST tokens, the Crowdsale contract will sell the product Stock + i with the price n VST
-        (e.g.: Stock23 will cost 20 VST)
-        **/
 
     // overriding Crowdsale token issue rate
     function _getTokenAmount(uint256 weiAmount) internal view returns (uint256) {
         return weiAmount.div(_rate);
     }
-
+    // Takes buyer adress and wei as args
+    // Updates user counter on each token purchase
+    //
     function _updatePurchasingState(address beneficiary, uint256 weiAmount) internal {
         userCounter++;
         tokensPurchased = weiAmount.div(_rate);
